@@ -1641,6 +1641,20 @@ class Joiner:
 
         self.query.do_join(JoinOn(self.item, self.how, criterion))
         return self.query
+    
+    def on_field_multi(self, *fields: Any) -> QueryBuilder:
+        if not fields:
+            raise JoinException(
+                "Parameter 'fields' is required for a " "{type} JOIN but was not supplied.".format(type=self.type_label)
+            )
+
+        criterion = None
+        for field in fields:
+            constituent = Field(field[0], table=self.query._from[0]) == Field(field[1], table=self.item)
+            criterion = constituent if criterion is None else criterion & constituent
+
+        self.query.do_join(JoinOn(self.item, self.how, criterion))
+        return self.query
 
     def using(self, *fields: Any) -> QueryBuilder:
         if not fields:
